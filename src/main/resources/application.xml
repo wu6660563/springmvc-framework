@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+							     http://www.springframework.org/schema/context 
+							     http://www.springframework.org/schema/context/spring-context.xsd
+							     http://www.springframework.org/schema/beans 
+							     http://www.springframework.org/schema/beans/spring-beans.xsd
+							     http://www.springframework.org/schema/jdbc 
+							     http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+							     http://www.springframework.org/schema/tx 
+							     http://www.springframework.org/schema/tx/spring-tx.xsd
+							     http://www.springframework.org/schema/aop 
+							     http://www.springframework.org/schema/aop/spring-aop.xsd
+							     http://www.springframework.org/schema/mvc 
+					        	 http://www.springframework.org/schema/mvc/spring-mvc.xsd
+					        	 http://www.springframework.org/schema/task
+	        					 http://www.springframework.org/schema/task/spring-task.xsd"
+	default-autowire="byName">
+	
+	<!-- 启用spring mvc 注解-->
+	<mvc:annotation-driven />
+	<!-- 自动扫描的包名 ，使Spring支持自动检测组件，如注解的Controller--> 
+	<context:component-scan base-package="com.geeku"
+		use-default-filters="false">
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Repository" />
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Service" />
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Component" />
+	</context:component-scan>
+	<!-- 多个拦截器,顺序执行 -->
+	 <!-- <mvc:interceptors>
+	 	<mvc:interceptor>
+			<mvc:mapping path="/**" />//拦截指定目录：?表示任意单个字符，*表示0个或多个字符，**表示0个或多个目录
+			<bean class="com.geeku.stu.interceptor.AuthorizationInterceptor">
+				<property name="unCheckUrls">
+					<list>
+						<value>/login/toLogin.action</value>
+						<value>/login/DoLogin.action</value>
+						<value>/login/toReg.action</value>
+						<value>/login/doReg.action</value>
+						<value>/doTraining/getClasseAJAX.action</value>
+					</list>
+				</property>
+			</bean>
+		</mvc:interceptor>
+	</mvc:interceptors> -->
+	
+	<import resource="classpath*:/config/core/app-datasources.xml" />
+	<!-- security before -->
+	<import resource="classpath*:/config/shiro/shiro-config.xml" />
+	<!-- ehcache source -->
+	<import resource="classpath*:/config/core/app-ehcache.xml" />
+</beans>

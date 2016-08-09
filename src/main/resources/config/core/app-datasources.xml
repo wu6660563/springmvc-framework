@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+						http://www.springframework.org/schema/context 
+						http://www.springframework.org/schema/context/spring-context-3.1.xsd
+						http://www.springframework.org/schema/aop  
+						http://www.springframework.org/schema/aop/spring-aop.xsd 
+						http://www.springframework.org/schema/tx  
+						http://www.springframework.org/schema/tx/spring-tx.xsd">
+						
+	<!-- 配置属性文件读入 -->
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:/connDB.properties</value>
+			</list>
+		</property>
+	</bean>				
+
+	<!-- ========================================配置数据源===========begin============================== -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+		<property name="driverClassName" value="${DB_CLASS_NAME}"/>
+		<property name="url" value="${DB_URL}"/>
+		<property name="username" value="${DB_USER}"/>
+		<property name="password" value="${DB_PWD}"/>
+		
+		<!-- 配置数据库连接初始化大小、最小、最大 --> 
+		<property name="initialSize" value="2"/>
+		<property name="minIdle" value="2"/>
+		<property name="maxActive" value="15"/>
+		
+		<!-- 配置获取连接最大等待时间,单位：毫秒。配置这个属性，缺省启用公平锁，并发效率会有所下降 -->
+    	<property name="maxWait" value="60000" />
+ 
+    	<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+    	<property name="timeBetweenEvictionRunsMillis" value="120000" />
+ 
+    	<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+    	<property name="minEvictableIdleTimeMillis" value="300000" />
+		
+		<!-- 配置监控统计拦截的filters(去掉后监控界面sql无法统计) -->
+      	<!-- <property name="filters" value="stat"/>-->
+      	<property name="filters" value="mergeStat" />
+	</bean>
+	<!-- ========================================配置数据源===========end============================== -->
+	
+	<!-- ========================================配置myBatis=========begin===================== -->
+    <!-- 配置sqlSessionFactory -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <!-- 自动扫描设定目录下的所有SQL映射的xml文件, 在classpath后面的*必不可少，缺少型号的话后面的通配符不起作用。
+        **表示可以表示任意多级目录，*表示多个任意字符-->
+        <property name="mapperLocations" value="classpath*:com/geeku/**/*Mapper.xml" />
+    </bean>
+    <!-- 配置扫描器 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 扫描指定包以及它的子包下的所有映射接口类，多个以英文","隔开 -->
+        <property name="basePackage" value="com.geeku.dao" />
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+    </bean>
+    <!-- ========================================配置myBatis=========end===================== -->
+    
+    <!-- 配置Spring的事务管理器 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+	<!-- 注解方式配置事务 -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+	
+	<!-- 配置druid监控spring jdbc -->
+    <bean id="druid-stat-interceptor" class="com.alibaba.druid.support.spring.stat.DruidStatInterceptor">
+    </bean>
+    <bean id="druid-stat-pointcut" class="org.springframework.aop.support.JdkRegexpMethodPointcut" scope="prototype">
+        <property name="patterns">
+            <list>
+                <value>com.geeku.service.*</value>
+            </list>
+        </property>
+    </bean>
+    <aop:config>
+        <aop:advisor advice-ref="druid-stat-interceptor" pointcut-ref="druid-stat-pointcut" />
+    </aop:config>
+	
+</beans>

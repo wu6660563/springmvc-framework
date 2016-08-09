@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+     http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+     http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+     http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+     http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd"
+	default-autowire="byName">
+	<description>此文件用于shiro的整体配置</description>
+
+	<!-- 安全管理器 -->
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="realms">
+			<list>
+				<bean id="geekRealm" class="com.geeku.common.shiro.GeekRealm" />
+			</list>
+		</property>
+		<!-- 缓存管理器 -->  
+        <property name="cacheManager" ref="cacheManager"/> 
+	</bean>
+	
+	<!-- 用户授权信息Cache，缓存在本机内存，不支持集群-->
+    <bean id="cacheManager" class="org.apache.shiro.cache.MemoryConstrainedCacheManager" />
+	
+	<!-- 定义shiro过滤器 -->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<property name="securityManager" ref="securityManager" />
+		<property name="loginUrl" value="/index" />
+		<!-- 如果无请求资源的权限，则跳转到指定请求地址 -->
+		<property name="unauthorizedUrl" value="/code_403.jsp" />
+		<!-- 权限配置 -->
+		<property name="filterChainDefinitions">
+			<value>
+				<!--过滤器分为两组，一组是认证过滤器，一组是授权过滤器。其中anon，authcBasic，authc，user是第一组，perms，roles，ssl，rest，port是第二组 -->
+				<!--注意user和authc不同：当应用开启了rememberMe时,用户下次访问时可以是一个user,但绝不会是authc,因为authc是需要重新认证的; -->
+				<!--user表示用户不一定已通过认证,只要曾被Shiro记住过登录状态的用户就可以正常发起请求,比如rememberMe -->
+				<!--说白了,以前的一个用户登录时开启了rememberMe,然后他关闭浏览器,下次再访问时他就是一个user,而不会authc -->
+				<!-- /index=user 表示用户不一定需要已经通过认证,只需要曾经被Shiro记住过登录状态就可以正常发起'/index'请求 -->
+				<!--anon表示可匿名使用,无需认证;authc表示需认证才能使用;authcBasic表示httpBasic认证;user表示必须Shiro记住用户,当登入操作时不做检查;ssl表示安全的URL请求,协议为https -->
+				<!--perms表示拥有某权限,参数可写多个,多参时必须加上引号,且参数之间用逗号分割,如/admins/user/**=perms["user:add:*,user:modify:*"],当有多个参数时必须每个参数都通过才算通过 -->
+				<!--roles表示拥有某角色,参数可写多个,多个时必须加上引号,且参数之间用逗号分割,如/admins/user/**=roles["admin,guest"],当有多个参数时必须每个参数都通过才算通过 -->
+
+				<!-- 只有admin角色才能访问的资源 -->
+				/admin/** =roles[admin]
+				
+				<!-- 只有teacher角色才能访问的资源 -->
+				/training/teach/** =roles[teacher]
+				/weike/teach/** =roles[teacher]
+				/exhibition/teachEx/** =roles[teacher]
+				
+				<!-- 只有student角色才能访问的资源 -->
+				/training/student/** =roles[student]
+				/weike/student/** =roles[student]
+				/exhibition/studentEx/** =roles[student]
+
+				<!-- 用户登录验证 -->
+				/index=anon
+				/user/**=anon
+				/admin/**=authc
+				/training/**=authc
+				/weike/**=authc
+				/exhibition/**=authc
+				/taste/**=authc
+			</value>
+		</property>
+	</bean>
+
+	<!-- securityManager -->
+	<bean
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="staticMethod" value="org.apache.shiro.SecurityUtils.setSecurityManager" />
+		<property name="arguments" ref="securityManager" />
+	</bean>
+	
+	<!-- 保证实现了Shiro内部lifecycle函数的bean能执行 -->
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+
+	<!-- AOP式方法级权限检查   这两个类主要用于注解-->
+	<bean
+		class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+		depends-on="lifecycleBeanPostProcessor">
+	</bean>
+	<bean
+		class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+		<property name="securityManager" ref="securityManager" />
+	</bean>
+</beans>

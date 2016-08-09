@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<!-- 控制台输出 -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <Encoding>UTF-8</Encoding> 
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %logger{60} - %msg %n</Pattern>
+		</layout>
+	</appender>
+
+	<!-- 每天生成日志文件,将前一天的日志重命名为包含日期的格式,根据需要删除过期历史日志 -->
+	<appender name="FILEOUT"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>D:/weblog/logs/dynamic.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>D:/weblog/logs/dynamic_%d{yyyy-MM-dd}(%i).log.zip
+			</fileNamePattern>
+			<minIndex>1</minIndex>
+			<maxIndex>5</maxIndex>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<!--日志文件最大的大小 -->
+				<maxFileSize>100MB</maxFileSize>
+				<!-- 日志文件数量 -->
+				<MaxHistory>50</MaxHistory>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %logger{60} - %msg %n</Pattern>
+		</layout>
+	</appender>
+
+	<!-- 用户日志 -->
+	<appender name="userLogger"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>D:/weblog/logs/user/userInfo.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>
+				D:/weblog/logs/user/userInfo_%d{yyyy-MM-dd}(%i).log.zip
+			</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>100MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} - %msg %n</Pattern>
+		</layout>
+	</appender>
+	<logger name="com.geeku.controller.authority.UserController"
+		level="INFO">
+		<appender-ref ref="userLogger" />
+	</logger>
+	<!-- 用户日志 -->
+
+	<!-- shiro begin -->
+	<appender name="shiroAppender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>D:/weblog/logs/shiro/shiro.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>D:/weblog/logs/shiro/shiro_%d{yyyy-MM-dd}(%i).log.zip
+			</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<!--日志文件最大的大小 -->
+				<maxFileSize>100MB</maxFileSize>
+				<!-- 日志文件数量 -->
+				<MaxHistory>50</MaxHistory>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} - %msg %n</Pattern>
+		</layout>
+	</appender>
+	<logger name="com.geeku.common.shiro" level="INFO">
+		<appender-ref ref="shiroAppender" />
+	</logger>
+	<!-- shiro end -->
+
+	<logger name="org.springframework">
+		<level value="WARN" />
+	</logger>
+	<logger name="org.mybatis">
+		<level value="WARN" />
+	</logger>
+	<logger name="org.apache.shiro">
+		<level value="WARN" />
+	</logger>
+
+	<logger name="com.geeku" level="TRACE" />
+
+	<!-- 根logger，所有的logger都会继续它 -->
+	<root level="DEBUG">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILEOUT" />
+	</root>
+</configuration>

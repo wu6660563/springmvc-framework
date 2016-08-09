@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	version="3.0">
+	<display-name>geek</display-name>
+	
+	<!-- 直接跳转首页 -->
+	<welcome-file-list>
+		<welcome-file>index</welcome-file>
+	</welcome-file-list>
+	
+	<!-- 加载spring的xml配置文件到 spring的上下文容器中 -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:application.xml,classpath*:/config/task/auto-task.xml</param-value>
+	</context-param>
+	<!-- 监听spring上下文容器 -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+	<!-- 配置字符集 -->
+	<filter>
+		<filter-name>characterEncodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>characterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<!-- 不拦截的静态资源交由默认的servlet进行处理 -->
+	<servlet-mapping>
+		<servlet-name>default</servlet-name>
+		<url-pattern>/static/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>default</servlet-name>
+		<url-pattern>*.png</url-pattern>
+		<url-pattern>*.gif</url-pattern>
+		<url-pattern>*.jpg</url-pattern>
+		<url-pattern>*.js</url-pattern>
+		<url-pattern>*.css</url-pattern>
+		<url-pattern>*.ico</url-pattern>
+		<url-pattern>*.html</url-pattern>
+	</servlet-mapping>
+
+	<!-- 配置Spring MVC DispatcherServlet -->
+	<servlet>
+		<servlet-name>dispatcher</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<!-- 加载SpringMVC的xml到 spring的上下文容器中 -->
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:dispatcher.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>dispatcher</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+
+	<!-- html中form表单只支持GET与POST请求，而DELETE、PUT等method并不支持，spring3.0添加了一个过滤器HiddenHttpMethodFilter，可以将这些请求转换为标准的http方法，使得支持GET、POST、PUT与DELETE请求。 -->
+	<filter>
+		<filter-name>HiddenHttpMethodFilter</filter-name>
+		<filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>HiddenHttpMethodFilter</filter-name>
+		<servlet-name>dispatcher</servlet-name>
+	</filter-mapping>
+	
+	<!-- 配置内置监控中的Web和Spring关联监控 -->
+ 	<filter>
+        <filter-name>DruidWebStatFilter</filter-name>
+        <filter-class>com.alibaba.druid.support.http.WebStatFilter</filter-class>
+        <init-param>
+            <param-name>exclusions</param-name>
+            <param-value>/res/*,*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>DruidWebStatFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+	<!-- 配置 Druid 内置内监控页面 -->
+	<servlet>
+      <servlet-name>DruidStatView</servlet-name>
+      <servlet-class>com.alibaba.druid.support.http.StatViewServlet</servlet-class>
+      	<init-param>  
+        	<!-- 允许清空统计数据 -->  
+        	<param-name>resetEnable</param-name>  
+        	<param-value>true</param-value>  
+    	</init-param> 
+  		<init-param>
+			<!-- 用户名 -->
+			<param-name>loginUsername</param-name>
+			<param-value>druid</param-value>
+		</init-param>
+		<init-param>
+			<!-- 密码 -->
+			<param-name>loginPassword</param-name>
+			<param-value>inwayedu</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+      <servlet-name>DruidStatView</servlet-name>
+      <url-pattern>/druid/*</url-pattern>
+	</servlet-mapping>
+	
+	<!-- 缓存清除监听器,防止内存泄露 -->   
+	<listener>   
+		<listener-class>org.springframework.web.util.IntrospectorCleanupListener</listener-class>   
+	</listener>
+
+	<!-- 配置Shiro -->
+	<filter>
+		<filter-name>shiroFilter</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+		<init-param>
+			<param-name>targetFilterLifecycle</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>shiroFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!-- 用户会话过期时间  分钟 -->
+	<session-config>
+		<session-timeout>120</session-timeout>
+	</session-config>
+	
+	<!-- 全 局的错误跳转页面-->
+	<error-page>
+        <error-code>404</error-code>  
+        <location>/error/404.html</location>  
+    </error-page>  
+    <error-page>  
+        <error-code>500</error-code>  
+        <location>/error/500.html</location>  
+    </error-page>
+    
+    <!-- 缓存、gzip压缩核心过滤器，暂时关闭
+    	param-value配置你需要缓存的url，多个使用逗号隔开，比如：/exhibition/teachEx/index,/exhibition/studentEx/index -->
+    <!-- 
+	<filter>
+	    <filter-name>PageEhCacheFilter</filter-name>
+	    <filter-class>com.geeku.common.filter.PageEhCacheFilter</filter-class>
+	    <init-param>
+	        <param-name>patterns</param-name>
+	        <param-value></param-value>
+	    </init-param>
+	</filter>
+	<filter-mapping>
+	    <filter-name>PageEhCacheFilter</filter-name>
+	    <url-pattern>/exhibition/teachEx/index</url-pattern>
+	</filter-mapping>
+	 -->
+
+</web-app>
